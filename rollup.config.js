@@ -5,6 +5,26 @@ import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
 import css from 'rollup-plugin-css-only';
 
+//Quick change settings
+const jsSrc = 'src/main.js'
+const jsDst = 'public/build/bundle.js'
+const cssDst = 'component.css'
+const appName = 'App'
+
+//Modified from template to allow for Sass and Babel
+import sveltePreprocess from 'svelte-preprocess'
+import babel from "@rollup/plugin-babel"
+
+//Babel settings for easy modification
+const babelSettings = {
+    babelHelpers: 'runtime',
+    extensions: [ '.js', '.mjs', '.html', '.svelte' ],
+    plugins: ['@babel/plugin-external-helpers', '@babel/plugin-transform-runtime', '@babel/plugin-proposal-object-rest-spread']
+}
+
+//Modified from template to write component CSS file
+const writeFileSync = require('fs').writeFileSync
+
 const production = !process.env.ROLLUP_WATCH;
 
 function serve() {
@@ -29,23 +49,24 @@ function serve() {
 }
 
 export default {
-	input: 'src/main.js',
+	input: jsSrc,
 	output: {
 		sourcemap: true,
 		format: 'iife',
-		name: 'app',
-		file: 'public/build/bundle.js'
+		name: appName,
+		file: jsDst
 	},
 	plugins: [
 		svelte({
 			compilerOptions: {
 				// enable run-time checks when not in production
 				dev: !production
-			}
+			},
+			preprocess: sveltePreprocess() //Modified from template - use Svelte preprocessing (for Sass)
 		}),
 		// we'll extract any component CSS out into
 		// a separate file - better for performance
-		css({ output: 'bundle.css' }),
+		css({ output: cssDst }),
 
 		// If you have external dependencies installed from
 		// npm, you'll most likely need these plugins. In
@@ -65,6 +86,9 @@ export default {
 		// Watch the `public` directory and refresh the
 		// browser on changes when not in production
 		!production && livereload('public'),
+
+		//Modified from template - process via Babel
+		production && babel(babelSettings),
 
 		// If we're building for production (npm run build
 		// instead of npm run dev), minify
